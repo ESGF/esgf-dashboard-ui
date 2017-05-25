@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>ESGF Console</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="../vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="../dist/css/sb-admin-2.css" rel="stylesheet">
+    
+    <!-- Morris Charts CSS -->
+    <link href="../vendor/morrisjs/morris.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    
+    <link rel="stylesheet" href="style.css"/>
+        
+    <style>
+    	#map-canvas { height: 500px }
+    </style>
+    
+    <style>
+    	#map { height: 500px }
+    </style>
+    
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyBTmNhvrvRNdIleOzASNWxPa1wbnAEvA9E"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.10/angular.js"></script>
+    <script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.11.0.js"></script>
+    <script src="http://rawgit.com/allenhwkim/angularjs-google-maps/master/build/scripts/ng-map.min.js"></script> 
+
+    <script src="../js/data-archivescript.js"></script> 
+
+</head>
+
+<body>
+
+    <div id="wrapper">
+
+        <!-- Navigation -->
+        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="index.html"><i class="fa fa-home fa-fw"></i>ESGF Console</a>
+            </div>
+
+            <div class="navbar-default sidebar" role="navigation">
+                <div class="sidebar-nav navbar-collapse">
+                    <ul class="nav" id="side-menu">
+                        <li>
+                            <a href="index.html"><i class="fa fa-dashboard fa-fw"></i> Statistics overview</a>
+                        </li>
+                        <li>
+                            <a href="cross-project.html"><i class="fa fa-bar-chart-o  fa-fw"></i> Cross-project statistics</a>
+                        </li>
+                        
+                        <li>
+                            <a href="#"><i class="fa fa-th-list fa-fw"></i> Project-specific statistics<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">                          
+                                <li>
+                                    <a href="cmip5.html"><i class="fa fa-files-o  fa-fw"></i> CMIP5 project</a>
+                                </li>
+                                <li>
+                                    <a href="obs4mips.html"><i class="fa fa-files-o  fa-fw"></i> Obs4MIPs project</a>
+                                </li>
+                            </ul>
+                        </li>
+                        
+<!--                         <li>
+                            <a href="clients-stats.html"><i class="fa fa-desktop  fa-fw"></i> Clients statistics</a>
+                        </li> -->
+                        
+<!--                         <li>
+                            <a href="historical.html"><i class="fa fa-bar-chart-o  fa-fw"></i> Historical data usage statistics</a>
+                        </li> -->
+                        
+                        <li>
+                            <a href="data-archive.html"><i class="fa fa-archive  fa-fw"></i> Federated data archive</a>
+                        </li>
+                        
+                        <li>
+                            <a href="isenes-kpi.html"><i class="fa fa-bar-chart-o  fa-fw"></i> IS-ENES2 KPIs</a>
+                        </li>
+                        
+<!--                         <li>
+                            <a href="service-status.html"><i class="fa fa-sitemap  fa-fw"></i> Service status</a>
+                        </li> -->
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" data-ng-app="">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">Federated data archive</h1>
+                    </div>
+                </div>
+
+                <div class="row" data-ng-controller="dataArchiveController">
+                	<div class="col-lg-12 col-md-12">
+						<div class="pull-left">
+		                	<label>Select a Data Node: </label>
+		                    <select class="form-control" id= "host-select" onchange="getHostsInfo(this)">
+			                    <option value="all">All Data Nodes</option>
+			                    <!-- <option disabled>----------------------Tier 1----------------------</option> -->
+								<option value="aims3.llnl.gov">LLNL (aims3.llnl.gov)</option>
+								<option value="cordexesg.dmi.dk">DMI (cordexesg.dmi.dk)</option>
+								<option value="eridanus.eoc.dlr.de">DLR (eridanus.eoc.dlr.de)</option>
+								<option value="esg-cccr.tropmet.res.in">TROPMET (esg-cccr.tropmet.res.in)</option>
+								<option value="esg-dn1.nsc.liu.se">LIU (esg-dn1.nsc.liu.se)</option>
+								<option value="esg.cnrm-game-meteo.fr">CNRM (esg.cnrm-game-meteo.fr)</option>
+								<option value="esg.pik-potsdam.de">PIK (esg.pik-potsdam.de)</option>
+								<option value="esgdata.gfdl.noaa.gov">NOAA/GFDL (esgdata.gfdl.noaa.gov)</option>
+								<option value="esgf-node.jpl.nasa.gov">NASA/JPL (esgf-data.jpl.nasa.gov)</option>
+								<option value="esgf-data.ucar.edu">NCAR (esgf-data.ucar.edu)</option>
+								<option value="esgf-data1.ceda.ac.uk">CEDA 1 (esgf-data1.ceda.ac.uk)</option>
+								<option value="esgf-data2.ceda.ac.uk">CEDA 2 (esgf-data2.ceda.ac.uk)</option>
+								<option value="esgf-data1.diasjp.net">DIASJP (esgf-data1.diasjp.net)</option>
+								<option value="esgf.extra.cea.fr">CEA (esgf.extra.cea.fr)</option>
+								<option value="esgf.ichec.ie">ICHEC (esgf.ichec.ie)</option>
+								<option value="esgf.knmi.nl">KNMI (esgf.knmi.nl)</option>
+								<option value="esgf.nccs.nasa.gov">NCCS/NASA (esgf.nccs.nasa.gov)</option>
+								<option value="esgf.nci.org.au">NCI (esgf.nci.org.au)</option>
+						        <option value="esgf1.dkrz.de">DKRZ 1 (esgf1.dkrz.de)</option>
+	  		                    <option value="esgf2.dkrz.de">DKRZ 2 (esgf2.dkrz.de)</option>
+	  		                    <option value="esgfcog.cccma.ec.gc.ca">CCCma (esgfcog.cccma.ec.gc.ca)</option>
+	  		                    <option value="noresg.norstore.no">NCC (noresg.norstore.no)</option>
+	  		                    <option value="prodn.idris.fr">IDRIS (prodn.idris.fr)</option>
+	  		                    <option value="vesg.ipsl.polytechnique.fr">IPSL (vesg.ipsl.polytechnique.fr)</option>
+			                    <option value="vesg.ipsl.upmc.fr">IPSL (vesg.ipsl.upmc.fr)</option>
+			                    <!-- <option disabled>----------------------Tier 2----------------------</option> -->
+		                    </select>
+		            	</div>  
+	                </div>
+	                
+	                <div class="col-lg-6 col-md-6">
+	                <br>
+	                <br>
+	                    <div class="panel panel-green">
+	                        <div class="panel-heading" >
+	                            <div class="row">
+	                                <div class="col-xs-6">
+	                                    <i class="fa fa-archive fa-5x"></i>
+	                                </div>
+	                                <div class="col-xs-12 text-right">
+	        <!--                        <div><button type="button" class="btn btn-default" onclick="datasets()">Press</button></div> -->
+	                                    <div class="huge" id="datasetsPanel"></div>
+	                                    <div class="huge">ESGF total number of datasets</div>
+	                                </div>
+	                            </div>
+	                        </div>
+<!-- 	                        <a href="#">
+	                            <div class="panel-footer">
+	                                <span class="pull-left">View Details</span>
+	                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+	                                <div class="clearfix"></div>
+	                            </div>
+	                        </a> -->
+	                    </div>
+	                </div>
+	                <div class="col-lg-6 col-md-6">
+	                <br>
+	                <br>
+	                    <div class="panel panel-green">
+	                        <div class="panel-heading">
+	                            <div class="row">
+	                                <div class="col-xs-6">
+	                                    <i class="fa fa-tasks fa-5x"></i>
+	                                </div>
+	                                <div class="col-xs-12 text-right">
+	                                    <div class="huge" id="sizePanel"></div>
+	                                    <div class="huge">ESGF total data volume</div>
+	                                </div>
+	                            </div>
+	                        </div>
+<!-- 	                        <a href="#">
+	                            <div class="panel-footer">
+	                                <span class="pull-left">View Details</span>
+	                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+	                                <div class="clearfix"></div>
+	                            </div>
+	                        </a> -->
+	                    </div>
+	                </div>
+	            </div>
+	            <br>
+	            <br>
+ 	            <div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">CMIP5 models and modelling institutes</h1>
+                    </div>
+                </div>
+	            <br>
+	            <br>
+	            <div class="row">
+	            	<br>
+	             	  <div class="col-lg-6 col-md-6" data-ng-controller="cmip5ModelController">
+		                    <div class="panel panel-primary">
+		                        <div class="panel-heading">
+		                            <i class="fa fa-files-o fa-fw"></i> Published CMIP5 data per Model
+		                        </div>
+		                        <div class="panel-body" style="height: 900px" >
+		                        	<div class="col-lg-12">
+                        				<h4 id="messageDiv">The computation above could take some time... Please wait.</h4>
+                    				</div>
+                    				
+		                        	<table class="table table-fixed3">
+	                                    <thead>
+	                                        <tr class="info">
+ 	                                            <th class="col-xs-1">#</th>
+	                                            <th class="col-xs-5">Model</th>
+	                                            <th class="col-xs-3"># of datasets</th>
+ 	                                            <th class="col-xs-3">Size (TB)</th>
+	                                        </tr>
+	                                    </thead>
+	                                    <tbody id="modelTable">
+	                                    	<tr ng-repeat="a in modelRows">
+ 	                                    	    <td class="col-xs-1">{{$index + 1}}</td>
+	                                    		<td class="col-xs-5">{{a.facetName}}</td>
+	                                    		<td class="col-xs-3">{{a.number}}</td>
+	                                    		<td class="col-xs-3">{{a.size}}</td>
+	                                    	</tr>
+	                                    </tbody>
+	                                 </table>
+		                        </div>
+		                    </div>
+		                </div>
+		                <div class="col-lg-6 col-md-6" data-ng-controller="cmip5InstituteController">
+		                    <div class="panel panel-primary">
+		                        <div class="panel-heading">
+		                            <i class="fa fa-files-o fa-fw"></i> Published CMIP5 data per Institute
+		                        </div>
+		                        <div class="panel-body" style="height: 900px" >
+		                       		<div class="col-lg-12">
+                        				<h4 id="messageDiv2">The computation above could take some time... Please wait.</h4>
+                    				</div>
+                    				
+		                        	<table class="table table-fixed3">
+	                                    <thead>
+	                                        <tr class="info">
+ 	                                            <th class="col-xs-1">#</th>
+	                                            <th class="col-xs-5">Modeling institute</th>
+	                                            <th class="col-xs-3"># of datasets</th>
+ 	                                            <th class="col-xs-3">Size (TB)</th>
+	                                        </tr>
+	                                    </thead>
+	                                    <tbody id="instituteTable">
+	                                    	<tr ng-repeat="a in instituteRows">
+   	                                   	        <td class="col-xs-1">{{$index + 1}}</td>
+	                                    		<td class="col-xs-5">{{a.facetName}}</td>
+	                                    		<td class="col-xs-3">{{a.number}}</td>
+	                                    		<td class="col-xs-3">{{a.size}}</td>
+	                                    	</tr>
+	                                    </tbody>
+	                                 </table>
+		                        </div>
+		                    </div>
+		                </div>
+	             </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- jQuery -->
+    <script src="../vendor/jquery/jquery.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="../vendor/metisMenu/metisMenu.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="../dist/js/sb-admin-2.js"></script>
+
+</body>
+
+</html>

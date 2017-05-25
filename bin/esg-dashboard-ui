@@ -1,0 +1,230 @@
+#!/bin/bash
+
+#####
+# ESGF Desktop
+# description: Desktop-like interface to ESGF Tools and Services...
+#
+#****************************************************************************
+#*                                                                          *
+#*   Copyright (c) 2009, Lawrence Livermore National Security, LLC.         *
+#*   Produced at the Lawrence Livermore National Laboratory                 *
+#*   Written by: Gavin M. Bell (gavin@llnl.gov)                             *
+#*   LLNL-CODE-420962                                                       *
+#*                                                                          *
+#*   All rights reserved. This file is part of the:                         *
+#*   Earth System Grid Fed (ESGF) Node Software Stack, Version 1.0          *
+#*                                                                          *
+#*   For details, see http://esgf.org/                                      *
+#*   Please also read this link                                             *
+#*    http://esgf.org/LICENSE                                               *
+#*                                                                          *
+#*   * Redistribution and use in source and binary forms, with or           *
+#*   without modification, are permitted provided that the following        *
+#*   conditions are met:                                                    *
+#*                                                                          *
+#*   * Redistributions of source code must retain the above copyright       *
+#*   notice, this list of conditions and the disclaimer below.              *
+#*                                                                          *
+#*   * Redistributions in binary form must reproduce the above copyright    *
+#*   notice, this list of conditions and the disclaimer (as noted below)    *
+#*   in the documentation and/or other materials provided with the          *
+#*   distribution.                                                          *
+#*                                                                          *
+#*   Neither the name of the LLNS/LLNL nor the names of its contributors    *
+#*   may be used to endorse or promote products derived from this           *
+#*   software without specific prior written permission.                    *
+#*                                                                          *
+#*   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS    *
+#*   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT      *
+#*   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS      *
+#*   FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE    *
+#*   LIVERMORE NATIONAL SECURITY, LLC, THE U.S. DEPARTMENT OF ENERGY OR     *
+#*   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,           *
+#*   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT       *
+#*   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF       *
+#*   USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND    *
+#*   ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,     *
+#*   OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT     *
+#*   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF     *
+#*   SUCH DAMAGE.                                                           *
+#*                                                                          *
+#****************************************************************************
+#####
+
+#uses: perl, awk, ifconfig, tar, wget, curl, su, useradd, groupadd,
+#      id, chmod, chown, chgrp, cut, svn, mkdir, killall, java, egrep,
+#      lsof, unlink, ln, pax, keytool, openssl
+
+#note: usage of readlink not macosx friendly :-( usage of useradd /
+#      groupadd is RedHat/CentOS dependent :-(
+
+DEBUG=${DEBUG:-0}
+VERBOSE=${VERBOSE:-0}
+envfile="/etc/esg.env"
+
+esgf_desktop_version=${esgf_desktop_version:-"0.9.6"}
+
+#--------------
+#User Defined / Settable (public)
+#--------------
+install_prefix=${install_prefix:-"/usr/local"}
+workdir=${workdir:-${installer_home:-"/usr/local/src/esgf"}/workbench/esg}
+esg_root_dir=${esg_root_dir:-${ESGF_HOME:-"/esg"}}
+esg_config_dir=${esg_root_dir}/config
+esgf_desktop_config_dir=${esg_config_dir}/desktop
+install_manifest=${install_manifest:-"${esg_root_dir}/esgf-install-manifest"}
+#--------------
+
+date_format=${date_format:-"+%Y_%m_%d_%H%M%S"}
+force_install=${force_install:-0}
+
+tomcat_user=${tomcat_user:-tomcat}
+tomcat_group=${tomcat_group:-$tomcat_user}
+tomcat_install_dir=${CATALINA_HOME:-${install_prefix}/tomcat}
+
+desktop_context_root=esgf-dashboard-ui
+desktop_service_app_home=${tomcat_install_dir}/webapps/${desktop_context_root}
+
+init() {
+    [ -n "${envfile}" ] && [ -e "${envfile}" ] && source ${envfile} && ((VERBOSE)) && printf "desktop: sourcing environment from: ${envfile} \n"
+
+    desktop_dist_url=${esg_dist_url}/esgf-dashboard-ui/esgf-dashboard-ui.war
+}
+
+
+#####
+# Install The Desktop webapp
+#####
+# - Takes boolean arg: 0 = setup / install mode (default)
+#                      1 = updated mode
+#
+# In setup mode it is an idempotent install (default)
+# In update mode it will always pull down latest after archiving old
+#
+setup_desktop() {
+    init
+
+    echo -n "Checking for desktop  ${esgf_desktop_version}"
+    check_webapp_version "${desktop_context_root}" "${esgf_desktop_version}"
+    local ret=$?
+    ((ret == 0)) && (( ! force_install )) && echo " [OK]" && return 0
+        
+    echo
+    echo "*******************************"
+    echo "Setting up The ESGF Desktop"
+    echo "*******************************"
+    echo
+
+    local upgrade=${1:-0}
+
+    local default="Y"
+    ((force_install)) && default="N"
+    local dosetup
+    if [ -d ${desktop_service_app_home} ]; then
+        echo "Detected an existing desktop installation..."
+        read -p "Do you want to continue with desktop installation and setup? $([ "$default" = "N" ] && echo "[y/N]" || echo "[Y/n]") " dosetup
+        [ -z "${dosetup}" ] && dosetup=${default}
+        if [ "${dosetup}" != "Y" ] && [ "${dosetup}" != "y" ]; then
+            echo "Skipping desktop installation and setup - will assume it's setup properly"
+            return 0
+        fi
+        
+        local dobackup="Y"
+        read -p "Do you want to make a back up of the existing distribution?? [Y/n] " dobackup
+        [ -z "${dobackup}" ] && dobackup=${default}
+        if [ "${dobackup}" = "Y" ] || [ "${dobackup}" = "y" ]; then
+            echo "Creating a backup archive of this web application $desktop_service_app_home"
+            backup ${desktop_service_app_home}
+        fi
+
+        echo
+    fi
+
+    mkdir -p ${workdir}
+    [ $? != 0 ] && return 1
+    pushd ${workdir} >& /dev/null
+
+    local desktop_dist_file=$(pwd)/${desktop_dist_url##*/}
+    checked_get ${desktop_dist_file} ${desktop_dist_url} $((force_install))
+    (( $? > 1 )) && echo " ERROR: Could not download ${node_dist_url} :-(" && popd >& /dev/null && checked_done 1
+    
+    stop_tomcat
+
+    #----------------------------
+    #make room for new install
+    set_aside_web_app ${desktop_service_app_home}
+
+    mkdir -p ${desktop_service_app_home}
+    [ $? != 0 ] && echo "Could not create dir ${desktop_service_app_home}" && popd >& /dev/null && checked_done 1
+    cd ${desktop_service_app_home}
+    echo "Expanding war ${desktop_dist_file} in $(pwd)"
+    $JAVA_HOME/bin/jar xf ${desktop_dist_file}
+    set_aside_web_app_cleanup ${desktop_service_app_home} $?
+
+    chown -R ${tomcat_user} ${desktop_service_app_home}
+    chgrp -R ${tomcat_group} ${desktop_service_app_home}
+
+    popd >& /dev/null
+    #----------------------------
+
+    popd >& /dev/null
+
+    write_desktop_install_log
+    setup_config
+    post_desktop_install
+    checked_done 0
+
+}
+
+setup_config() {
+    echo -n "Setting up config file(s) for desktop... "
+    local multimedia_config_filename="multimedia.txt.template"
+    if [ -e ${esgf_desktop_config_dir}/${multimedia_config_filename%.*} ] && ((!force_install)); then
+        ((DEBUG)) && echo "${multimedia_config_filename%.*} file already present "
+        echo ":-) "
+        return 0
+    fi
+    mkdir -p ${esgf_desktop_config_dir} >& /dev/null
+    ((DEBUG)) && echo "cp -v ${desktop_service_app_home}/WEB-INF/classes/${multimedia_config_filename} ${esgf_desktop_config_dir}/${multimedia_config_filename%.*}"
+    cp ${desktop_service_app_home}/WEB-INF/classes/${multimedia_config_filename} ${esgf_desktop_config_dir}/${multimedia_config_filename%.*} && echo "[OK]" || echo "[FAIL]"
+}
+
+desktop_startup_hook() {
+    echo -n "Desktop Startup Hook: "
+    setup_config
+}
+
+post_desktop_install() {
+    echo -n "performing post install cleanup... "
+    ([ -d "${tomcat_install_dir}/work" ] && rm -rf ${tomcat_install_dir}/work) && echo "[OK]" || echo "[FAIL]"
+}
+
+write_desktop_install_log() {
+    echo "$(date ${date_format}) webapp:${desktop_context_root}=${esgf_desktop_version} ${desktop_service_app_home}" >> ${install_manifest}
+    dedup ${install_manifest}
+    write_as_property desktop_service_endpoint http://${esgf_host}/${desktop_context_root}/
+    write_as_property desktop_service_app_home
+    return 0
+}
+
+clean_desktop_webapp_subsystem() {
+    init
+    local doit="N"
+    if [ -e ${desktop_service_app_home} ]; then
+        read -p "remove ESGF Desktop web service? (${desktop_service_app_home}) [y/N]: " doit
+        if [ "doit" = "Y" ] || [ "$doit" = "y" ]; then
+            echo "removing ${desktop_service_app_home}"
+            if [ -n ${desktop_service_app_home} ]; then
+                rm -rf ${desktop_service_app_home}
+                [ $? != 0 ] && echo "ERROR: Unable to remove ${desktop_service_app_home}" && return 1
+                perl -n -i -e'print unless m!webapp:esgf-dashboard-ui!' ${install_manifest}
+            fi
+        fi
+    fi 
+    if [ ! -e ${desktop_service_app_home} ]; then
+        debug_print "removing desktop associated properties..."
+        remove_property desktop_service_endpoint
+        remove_property desktop_service_app_home
+    fi
+    return 0
+}

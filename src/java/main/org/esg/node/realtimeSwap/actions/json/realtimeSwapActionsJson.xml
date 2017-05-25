@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<!-- AUTHOR: CMCC -->
+
+<struts>
+
+	<package name="realtimeSwapActionsJson" namespace="/realtimeSwapJson" extends="json-default">
+		
+		<global-results>
+			<result name="error" type="json">
+				<param name="root">null</param>
+			</result>
+			<result name="input" type="json">
+				<param name="root">null</param>
+			</result>
+		</global-results>
+		<global-exception-mappings>
+			<exception-mapping result="error" exception="java.lang.Exception" />
+		</global-exception-mappings>
+		
+		<action name="RealtimeSwap" class="org.esg.node.realtimeSwap.actions.json.RealtimeSwapAction">
+			<result type="json">
+		    	<param name="root">swapList</param>
+		   </result>
+		</action>
+		
+	</package>
+	
+</struts>

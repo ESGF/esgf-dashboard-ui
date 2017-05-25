@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<!-- AUTHOR: CMCC -->
+
+<struts>
+
+	<package name="datausageActionsStream" namespace="/datausagecsv" extends="struts-default">
+		
+		<global-exception-mappings>
+			<exception-mapping result="error" exception="java.lang.Exception" />
+		</global-exception-mappings>
+		
+		<action name="loadNumberDownloads" class="org.esg.node.datausage.actions.stream.LoadNumberDownloadCSVAction">
+			<result name="success" type="stream">
+			  <param name="contentType">text/csv</param>
+			  <param name="inputName">stream</param>
+			  <param name="contentDisposition">filename="num_downloads.csv"</param>
+			  <param name="bufferSize">1024</param>
+			</result>
+		</action>
+		
+		<action name="loadNumberFiles" class="org.esg.node.datausage.actions.stream.LoadNumberFilesCSVAction">
+			<result name="success" type="stream">
+			  <param name="contentType">text/csv</param>
+			  <param name="inputName">stream</param>
+			  <param name="contentDisposition">filename="num_files.csv"</param>
+			  <param name="bufferSize">1024</param>
+			</result>
+		</action>
+		
+		<action name="loadNumberUsers" class="org.esg.node.datausage.actions.stream.LoadNumberUsersCSVAction">
+			<result name="success" type="stream">
+			  <param name="contentType">text/csv</param>
+			  <param name="inputName">stream</param>
+			  <param name="contentDisposition">filename="num_users.csv"</param>
+			  <param name="bufferSize">1024</param>
+			</result>
+		</action>
+		
+		<action name="loadDownloadedData" class="org.esg.node.datausage.actions.stream.LoadDownloadedDataCSVAction">
+			<result name="success" type="stream">
+			  <param name="contentType">text/csv</param>
+			  <param name="inputName">stream</param>
+			  <param name="contentDisposition">filename="downloaded_data.csv"</param>
+			  <param name="bufferSize">1024</param>
+			</result>
+		</action>
+		
+		<action name="loadDownloadsByUser" class="org.esg.node.datausage.actions.stream.LoadDownloadsByUserCSVAction">
+			<result name="success" type="stream">
+			  <param name="contentType">text/csv</param>
+			  <param name="inputName">stream</param>
+			  <param name="contentDisposition">filename="downloads_by_user.csv"</param>
+			  <param name="bufferSize">1024</param>
+			</result>
+		</action>
+		
+		<!-- <action name="loadDownloadsByIdp" class="org.esg.node.datausage.actions.stream.LoadDownloadsByIdpCSVAction">
+			<result name="success" type="stream">
+			  <param name="contentType">text/csv</param>
+			  <param name="inputName">stream</param>
+			  <param name="contentDisposition">filename="downloads_by_idp.csv"</param>
+			  <param name="bufferSize">1024</param>
+			</result>
+		</action> -->
+		
+	</package>
+	
+</struts>

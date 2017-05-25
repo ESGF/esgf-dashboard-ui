@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<!-- AUTHOR: CMCC -->
+
+<struts>
+
+	<package name="f2fstatsActionsJson" namespace="/f2fstatsJson" extends="json-default">
+		
+		<global-results>
+			<result name="error" type="json">
+				<param name="root">null</param>
+			</result>
+			<result name="input" type="json">
+				<param name="root">null</param>
+			</result>
+		</global-results>
+		<global-exception-mappings>
+			<exception-mapping result="error" exception="java.lang.Exception" />
+		</global-exception-mappings>
+		
+		<action name="getDataUsageByProject" class="org.esg.node.f2fstats.actions.json.GetDataUsageByProjectAction">
+			<result type="json">
+		    	<param name="root">dataUsage</param>
+		   </result>
+		</action>
+		
+		<action name="getLogDataUsageByProject" class="org.esg.node.f2fstats.actions.json.GetLogDataUsageByProjectAction">
+			<result type="json">
+		    	<param name="root">dataUsage</param>
+		   </result>
+		</action>
+		
+		<action name="getDataVolumeByProject" class="org.esg.node.f2fstats.actions.json.GetDataVolumeByProjectAction">
+			<result type="json">
+		    	<param name="root">dataVolume</param>
+		   </result>
+		</action>
+		
+		<action name="loadDownloadsDistributionByContinent" class="org.esg.node.f2fstats.actions.json.GetDownloadsDistributionByContinentAction">
+			<result type="json">
+		    	<param name="root">downloads</param>
+		   </result>
+		</action>
+		
+	    <action name="loadDownloadsDistributionByCountry" class="org.esg.node.f2fstats.actions.json.GetDownloadsDistributionByCountryAction">
+			<result type="json">
+		    	<param name="root">downloads</param>
+		   </result>
+		</action>
+		
+		<action name="loadUsersDistributionByContinent" class="org.esg.node.f2fstats.actions.json.GetUsersDistributionByContinentAction">
+			<result type="json">
+		    	<param name="root">users</param>
+		   </result>
+		</action>
+		
+		<action name="loadUsersDistributionByIdp" class="org.esg.node.f2fstats.actions.json.GetUsersDistributionByIdpAction">
+			<result type="json">
+		    	<param name="root">users</param>
+		   </result>
+		</action>
+		
+	    <action name="loadUsersDistributionByCountry" class="org.esg.node.f2fstats.actions.json.GetUsersDistributionByCountryAction">
+			<result type="json">
+		    	<param name="root">users</param>
+		   </result>
+		</action>
+		
+	</package>
+	
+</struts>

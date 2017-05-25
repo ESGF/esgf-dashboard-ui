@@ -1,0 +1,78 @@
+#map {
+	height:600px;
+    width:100%;
+}
+
+.table-fixed thead {
+  width: 100%;
+}
+.table-fixed tbody {
+  height: 200px;
+  overflow-y: auto;
+  width: 100%;
+}
+.table-fixed thead, .table-fixed tbody, .table-fixed tr, .table-fixed td, .table-fixed th {
+  display: block;
+}
+.table-fixed tbody td, .table-fixed thead > tr> th {
+  float: left;
+  border-bottom-width: 0;
+}
+
+.table-fixed2 thead {
+  width: 100%;
+}
+.table-fixed2 tbody {
+  height: 800px;
+  overflow-y: auto;
+  width: 100%;
+}
+.table-fixed2 thead, .table-fixed2 tbody, .table-fixed2 tr, .table-fixed2 td, .table-fixed2 th {
+  display: block;
+}
+.table-fixed2 tbody td, .table-fixed2 thead > tr> th {
+  float: left;
+  border-bottom-width: 0;
+}
+
+.table-fixed3 thead {
+  width: 100%;
+}
+.table-fixed3 tbody {
+  height: 820px;
+  overflow-y: auto;
+  width: 100%;
+}
+.table-fixed3 thead, .table-fixed3 tbody, .table-fixed3 tr, .table-fixed3 td, .table-fixed3 th {
+  display: block;
+}
+.table-fixed3 tbody td, .table-fixed3 thead > tr> th {
+  float: left;
+  border-bottom-width: 0;
+}
+
+.table-fixed4 thead {
+  width: 100%;
+}
+.table-fixed4 tbody {
+  height: 400px;
+  overflow-y: scroll;
+  width: 100%;
+}
+.table-fixed4 thead, .table-fixed4 tbody, .table-fixed4 tr, .table-fixed4 td, .table-fixed4 th {
+  display: block;
+}
+.table-fixed4 tbody td, .table-fixed4 thead > tr> th {
+  float: left;
+  border-bottom-width: 0;
+}
+
+.red{
+  background-color: rgb(255, 0, 0);
+  value: 'NOT OK';
+}
+
+.green{
+  background-color: rgb(0, 255, 0);
+  value: 'OK',
+}

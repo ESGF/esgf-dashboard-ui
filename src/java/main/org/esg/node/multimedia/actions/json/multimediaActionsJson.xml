@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<!-- AUTHOR: CMCC -->
+
+<struts>
+
+	<package name="multimediaActionsJson" namespace="/multimediaJson" extends="json-default">
+		
+		<global-results>
+			<result name="error" type="json">
+				<param name="root">null</param>
+			</result>
+			<result name="input" type="json">
+				<param name="root">null</param>
+			</result>
+		</global-results>
+		<global-exception-mappings>
+			<exception-mapping result="error" exception="java.lang.Exception" />
+		</global-exception-mappings>
+	
+		<action name="getCategoryTree" class="org.esg.node.multimedia.actions.json.LoadCategoryTreeAction">
+			<result type="json">
+		    	<param name="root">categories</param>
+		   </result>
+		</action>
+		
+<!-- 		<action name="getHostsInfo" class="org.esg.node.federationinfo.actions.json.GetHostInfoAction">
+			<result type="json">
+		    	<param name="root">hostsList</param>
+		   </result>
+		</action> -->
+		
+	</package>
+	
+</struts>
